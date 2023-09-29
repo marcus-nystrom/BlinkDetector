@@ -1,7 +1,7 @@
 # BlinkDetector
 Code accompanying the paper Nyström, M., Andersson, R., Niehorster, D. C.,· Hessels, R. S., Hooge, I. T. C., (2023), What is a blink? Classifying and characterizing blinks in eye openness signals (submitted)
 
-
+Tested with Python 3.10.10, using Pandas (v. 1.5.3), Scipy (v. 1.10.0).
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
