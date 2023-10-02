@@ -494,5 +494,7 @@ class BlinkDetector(object):
                            [6, 6],
                            alpha=0.5, color='c', ms=10, lw=5)
 
+        plt.show()
+                                         
         if self.settings.plot_on and self.settings.save_fig:
             plt.savefig(pid_name + '_' + trial_name + '.pdf')
