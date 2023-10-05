@@ -318,11 +318,11 @@ class BlinkDetector(object):
             opening_velocity = np.nanmax(eye_openness_signal_vel[peak_idx:int(peak_idx + width)])
 
             # Then eye closing velocity (when eyelid closes in the beginning of a blink)
-            peak_left_idx = width - np.nanargmin(eye_openness_signal_vel[int(peak_idx - width):peak_idx]) + 1
+            peak_left_idx = width - np.nanargmin(eye_openness_signal_vel[np.max([0, int(peak_idx - width)]):peak_idx]) + 1
             peak_left_idx = np.nanmax([peak_left_idx, 0])
             idx_max_closing_vel = int(peak_idx - peak_left_idx + 1)
             time_max_closing_vel = t[idx_max_closing_vel]
-            closing_velocity = np.nanmin(eye_openness_signal_vel[int(peak_idx - width):peak_idx])
+            closing_velocity = np.nanmin(eye_openness_signal_vel[np.max([0, int(peak_idx - width)]):peak_idx])
 
             # Identify on and offsets (go from peak velocity backward/forward)
             temp = eye_openness_signal_vel[idx_max_opening_vel:]
