@@ -41,8 +41,7 @@ def interpolate_nans(t, y, gap_dur=np.inf):
     d = np.diff(np.concatenate((np.array([0]), d*1, np.array([0]))))
     onsets = np.where(d==1)[0]
     offsets = np.where(d==-1)[0]
-    # print(t, onsets)
-    
+
     # Decrease offsets come too late by -1
     if np.any(offsets >= len(y)):
         idx = np.where(offsets >= len(y))[0][0]
@@ -56,8 +55,6 @@ def interpolate_nans(t, y, gap_dur=np.inf):
         if dur[i] > gap_dur:
             y[onsets[i]:offsets[i]] = -1000
 
-    # print(y)
-    # print('ehj')
     nans, x = nan_helper(y)
     y[nans]= np.interp(x(nans), x(~nans), y[~nans])
 
