@@ -28,10 +28,6 @@ class Settings():
         # (only for visualization purposes)
         self.full_blink_max_opening = 2
 
-        # Convert between samples and ms
-        self.ms_to_sample = self.Fs / 1000
-        self.sample_to_ms = 1000 / self.Fs
-
         self.gap_dur = 40 # max gaps between period of data loss, interpolate smaller gaps
         self.min_amplitude = 0.1 # % of fully open eye (0.1 - 10%)
         self.min_separation = 100 # min separation between blinks
@@ -122,8 +118,6 @@ class BlinkDetector(object):
                      additional_params=[]):
         """
 
-        TEST!
-
         Merges blinks close together, and removes short blinks
         Args:
             blink_onsets (list): onsets of blinks (ms)
@@ -165,8 +159,6 @@ class BlinkDetector(object):
                     new_offsets.append(blink_offsets[i])
                     if len(additional_params) > 0:
                         new_parameters.append(additional_params[i, :])
-                    # blinks.append([temp_onset * sample_to_ms,
-                    #                 offsets[i] * sample_to_ms])
             else:
 
                 # # Remove blink with too short duration
@@ -209,23 +201,19 @@ class BlinkDetector(object):
             df (dataframe): .
 
         '''
-        # pupil_signal = pupil_signal
-        ms_to_sample = Fs / 1000
-
 
         # Interpolate short periods of data loss
         pupil_signal = preprocessing.interpolate_nans(t, pupil_signal,
-                                                              gap_dur=(gap_dur * ms_to_sample))
+                                                              gap_dur=gap_dur)
 
         # Convert to bounds and clean up
         onsets, offsets = self._binary2bounds(np.isnan(pupil_signal) * 1)
 
-        # Remove short blinks and convert onsets/offsets to ms
+        # Convert onsets/offsets to ms
         blinks = []
         for i, onset in enumerate(onsets):
             dur = t[offsets[i]] - t[onset]
-            if dur > min_dur: # Required to remove shopped-up signal
-                blinks.append([t[onset], t[offsets[i]], dur])
+            blinks.append([t[onset], t[offsets[i]], dur])
 
         # Remove blinks with on-, or offsets that happened in a period of missing data
         # (i.e., where samples are completely lost, for some reason)
@@ -270,18 +258,22 @@ class BlinkDetector(object):
 
         """
 
+        ms_to_sample = Fs / 1000
+        sample_to_ms = 1000 / Fs
+
+
         # Assumes the eye is mostly open during the trial
         fully_open = np.nanmedian(eye_openness_signal, axis=0)
         min_amplitude = fully_open * self.settings.min_amplitude  # Equivalent to height in 'find_peaks'
 
         # detection parameters in samples
         distance_between_blinks = 1
-        width_of_blink = width_of_blink * self.settings.ms_to_sample
-        filter_length = filter_length * self.settings.ms_to_sample
+        width_of_blink = width_of_blink * ms_to_sample
+        filter_length = filter_length * ms_to_sample
 
         # Interpolate gaps
         eye_openness_signal = preprocessing.interpolate_nans(t, eye_openness_signal,
-                                                              gap_dur=gap_dur)
+                                                              gap_dur=int(gap_dur))
 
         # Filter eyelid signal and compute
         eye_openness_signal_filtered = savgol_filter(eye_openness_signal, filter_length, 2,
@@ -371,7 +363,7 @@ class BlinkDetector(object):
 
             distance_onset_peak_vel = np.abs(eye_openness_signal_filtered[onset_idx] -
                                              eye_openness_signal_filtered[idx_max_closing_vel]) # mm
-            timediff_onset_peak_vel = np.abs(onset_idx - idx_max_closing_vel) * self.settings.sample_to_ms # ms
+            timediff_onset_peak_vel = np.abs(onset_idx - idx_max_closing_vel) * sample_to_ms # ms
 
             # Onset and peak cannot be too close in space and time
             if (distance_onset_peak_vel < 0.1) or (timediff_onset_peak_vel < 10):
@@ -438,7 +430,7 @@ class BlinkDetector(object):
             fig, ax = plt.subplots(3, 1, sharex=True, figsize=(16*2,9*2))
             ax[2].plot(t, BlinkDetector.pixels2degrees(xy[:, 0] * 1920))
             ax[2].plot(t, BlinkDetector.pixels2degrees(xy[:, 1] * 1080, dim='v'))
-            ax[2].set_xlabel('Time (s)')
+            ax[2].set_xlabel('Time (ms)')
             ax[2].set_ylabel('Gaze position (deg)')
             ax[2].legend(['x', 'y'])
         else:
@@ -460,7 +452,7 @@ class BlinkDetector(object):
 
 
         ax[1].plot(t, eye_openness_signal_vel)
-        ax[1].set_xlabel('Time (s)')
+        ax[1].set_xlabel('Time (ms)')
         ax[1].set_ylabel('Eye openness velocity (mm/s)')
 
         # Go through the dataframe and plot one blink at the time
@@ -474,11 +466,9 @@ class BlinkDetector(object):
             ax[1].plot(row.time_peak_closing_velocity, row.peak_closing_velocity, 'ro')
             ax[1].plot(row.time_peak_opening_velocity, row.peak_opening_velocity, 'go')
 
-            # idx = int(row.offset * ms_to_sample)
             idx = np.searchsorted(t, row.offset)
             ax[0].plot(row.offset, eye_openness_signal[idx], 'rv', ms=10)
             ax[1].plot(row.offset, eye_openness_signal_vel[idx], 'rv', ms=10)
-            # idx = int(row.onset * ms_to_sample)
             idx = np.searchsorted(t, row.onset)
             ax[0].plot(row.onset, eye_openness_signal[idx], 'gv', ms=10)
             ax[1].plot(row.onset, eye_openness_signal_vel[idx], 'gv', ms=10)
@@ -495,6 +485,6 @@ class BlinkDetector(object):
                            alpha=0.5, color='c', ms=10, lw=5)
 
         plt.show()
-                                         
+
         if self.settings.plot_on and self.settings.save_fig:
             plt.savefig(pid_name + '_' + trial_name + '.pdf')
