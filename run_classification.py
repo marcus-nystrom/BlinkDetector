@@ -14,7 +14,7 @@ import blink
 
 # Import and change (optional) settings
 settings = blink.Settings()
-settings.plot_on = True
+settings.plot_on = False
 
 bd = blink.BlinkDetector(settings)
 
@@ -43,6 +43,10 @@ if 'Spectrum' in dataset:
             for file in files:
 
                 filename = str(file).split(os.sep)[-1][:-4]
+
+                # if 'Center' not in filename:
+                #     continue
+
                 print(f'pid: {pid_name}, eye: {eye}, condition: {filename}')
                 df = pd.read_csv(Path(file), sep='\t')
                 eye_openness_signal = np.c_[df[key]]
