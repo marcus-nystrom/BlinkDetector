@@ -36,6 +36,10 @@ class Settings():
         self.width_of_blink = 15  # in ms width of peak to initially detect
         self.min_blink_dur = 30  # reject blinks shorter than 30 ms
 
+        self.min_pupil_size = 2 # in mm
+        self.window_len = np.nan # in ms window over which to exclude outliers (np.nan means whole trial)
+        self.treshold_SD = 2.5 # remove values 2.5 * SD from the mean
+
 
 # %%
 class BlinkDetector(object):
@@ -187,7 +191,7 @@ class BlinkDetector(object):
 
     # %%
     def blink_detector_pupil(self, t, pupil_signal, Fs, gap_dur=20, min_dur=20,
-                                    min_separation=50):
+                             remove_outliers = False, min_separation=50):
         '''
         Args:
             t (np.array): DESCRIPTION.
@@ -201,6 +205,30 @@ class BlinkDetector(object):
             df (dataframe): .
 
         '''
+
+        # Remove outliers?
+        if remove_outliers:
+            if np.isnan(self.settings.window_len):
+                window_len_samples = len(pupil_signal)
+            else:
+                window_len_samples = int(Fs / 1000 * self.settings.window_len) # in ms window over which to exclude outliers
+
+            ps = pupil_signal.copy()
+            ps[ps < self.settings.min_pupil_size] = np.nan
+
+            for k in np.arange(len(ps) - window_len_samples + 1):
+                temp = pupil_signal[k : (k + window_len_samples)].copy()
+
+                if len(temp) == 0:
+                    continue
+
+                m = np.nanmean(temp)
+                sd = np.nanstd(temp)
+                idx = (temp > (m + self.settings.treshold_SD * sd)) | (temp < (m - self.settings.treshold_SD * sd))
+                temp[idx] = np.nan
+                ps[k : (k + window_len_samples)] = temp
+
+            pupil_signal = ps
 
         # Interpolate short periods of data loss
         pupil_signal = preprocessing.interpolate_nans(t, pupil_signal,

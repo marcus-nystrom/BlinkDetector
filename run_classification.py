@@ -10,11 +10,17 @@ import pandas as pd
 import os
 from pathlib import Path
 import blink
+import copy
+import matplotlib.pyplot as plt
 
-
+plt.close('all')
 # Import and change (optional) settings
 settings = blink.Settings()
 settings.plot_on = False
+
+# Remove outliers (pupil size values < 2 mm)
+# and > 2.5 SD from the mean of sample in a window
+remove_outliers = False
 
 bd = blink.BlinkDetector(settings)
 
@@ -53,6 +59,7 @@ if 'Spectrum' in dataset:
                 eye_openness_signal = np.squeeze(eye_openness_signal)
 
                 pupil_signal = np.array(df[f'{eye}_pupil_diameter'])
+
                 t = np.array(df['system_time_stamp'])
                 t = (t - t[0]) / 1000
 
@@ -70,6 +77,7 @@ if 'Spectrum' in dataset:
                 df_out_pupil = bd.blink_detector_pupil(t, pupil_signal, settings.Fs,
                                                            gap_dur=settings.gap_dur,
                                                            min_dur=settings.min_blink_dur,
+                                                           remove_outliers=remove_outliers,
                                                            min_separation=settings.min_separation)
                 if settings.plot_on:
                     bd.plot_blink_detection_results(t,
@@ -144,8 +152,9 @@ else:
             df_out_pupil = bd.blink_detector_pupil(t, pupil_signal, settings.Fs,
                                                        gap_dur=settings.gap_dur,
                                                        min_dur=settings.min_blink_dur,
+                                                       remove_outliers=remove_outliers,
                                                        min_separation=settings.min_separation)
-            if settings.plot_on:
+        if settings.plot_on:
                 bd.plot_blink_detection_results(t,
                                              eye_openness_signal,
                                              eye_openness_signal_vel,
