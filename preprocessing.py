@@ -62,3 +62,21 @@ def interpolate_nans(t, y, gap_dur=np.inf):
     y[y == -1000] = np.nan
 
     return y
+
+
+#%%
+def nearest_odd_integer(x):
+    """Returns nearest odd integer of input value.
+
+    Input:
+        - x, float or integer
+    Output:
+        - integer value that is odd
+    Example:
+        >>> nearest_odd_integer(6.25)
+            7
+        >>> nearest_odd_integer(5.99)
+            5
+    """
+
+    return int(2*np.floor(x/2)+1)
