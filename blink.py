@@ -297,7 +297,7 @@ class BlinkDetector(object):
         # detection parameters in samples
         distance_between_blinks = 1
         width_of_blink = width_of_blink * ms_to_sample
-        filter_length = filter_length * ms_to_sample
+        filter_length = preprocessing.nearest_odd_integer(filter_length * ms_to_sample)
 
         # Interpolate gaps
         eye_openness_signal = preprocessing.interpolate_nans(t, eye_openness_signal,
