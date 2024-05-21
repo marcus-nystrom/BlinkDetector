@@ -65,9 +65,9 @@ class BlinkDetector(object):
         """
 
         # Find segments of data loss
-        d = np.diff(binary)
+        d = np.diff(np.hstack((0, binary, 0)))
         onsets = np.where(d == 1)[0]
-        offsets = np.where(d == -1)[0]
+        offsets = np.where(d == -1)[0] - 1
 
         # Match onsets with offsets
         if len(offsets) > len(onsets):
@@ -415,13 +415,18 @@ class BlinkDetector(object):
                                      opening_velocity, closing_velocity,
                                      opening_amplitude, closing_amplitude])
 
-        # Merge blinks too close together in time
-        blink_temp = np.array(blink_properties)
-        blink_onsets = blink_temp[:, 0]
-        blink_offsets = blink_temp[:, 1]
+        # Are there any blinks found?
+        if len(blink_properties) == 0:
+            bp = []
+        else:
 
-        bp =  self._merge_blinks(blink_onsets, blink_offsets, width_of_blink, min_separation,
-                         additional_params=blink_temp[:, 3:])
+            # Merge blinks too close together in time
+            blink_temp = np.array(blink_properties)
+            blink_onsets = blink_temp[:, 0]
+            blink_offsets = blink_temp[:, 1]
+
+            bp =  self._merge_blinks(blink_onsets, blink_offsets, width_of_blink, min_separation,
+                             additional_params=blink_temp[:, 3:])
 
         # Convert to dataframe
         df = pd.DataFrame(bp,
