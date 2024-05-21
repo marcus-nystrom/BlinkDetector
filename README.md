@@ -1,5 +1,5 @@
 # BlinkDetector
-Code and data accompanying the paper Nyström, M., Andersson, R., Niehorster, D. C., Hessels, R. S., Hooge, I. T. C., (2023), What is a blink? Classifying and characterizing blinks in eye openness signals (submitted)
+Code and data accompanying the paper Nyström, M., Andersson, R., Niehorster, D. C., Hessels, R. S., & Hooge, I. T. (2024). What is a blink? Classifying and characterizing blinks in eye openness signals. Behavior Research Methods, 1-20.
 
 To test the blink algorithm, open and run the file `run_classification.py`.
 
